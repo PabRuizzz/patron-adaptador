@@ -2,134 +2,212 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Patrón Adaptador - Pasarela de Pagos</title>
+  <title>Patrón Adaptador + Casino & Ads</title>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; background: #f4f6f8; padding: 20px; display: flex; justify-content: center; }
-    .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
-    select, input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { background: #0066cc; color: white; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
-    button:hover { background: #0052a3; }
-    .log-box { background: #1e1e1e; color: #4af626; padding: 14px; border-radius: 4px; font-family: monospace; font-size: 0.88em; min-height: 160px; white-space: pre-wrap; margin-top: 15px; line-height: 1.4; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    
+    /* Layout principal con anuncios laterales */
+    .top-banner { width: 100%; max-width: 950px; background: #ff0055; color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 1.2rem; border: 3px dashed #yellow; margin-bottom: 20px; animation: blink 1s infinite; }
+    .layout { display: flex; gap: 20px; width: 100%; max-width: 950px; }
+    .ad-sidebar { width: 180px; background: #222; border: 2px solid #444; padding: 10px; font-size: 0.8rem; text-align: center; }
+    .ad-box { background: #333; border: 1px solid #ffcc00; padding: 15px; margin-bottom: 15px; border-radius: 6px; color: #ffcc00; }
+    .main-content { flex: 1; background: #1e1e1e; padding: 24px; border-radius: 8px; border: 1px solid #333; }
+
+    /* Estilos del Formulario y Widget */
+    select, input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #444; background: #2a2a2a; color: white; border-radius: 4px; }
+    button.btn-pay { background: #00e676; color: #000; font-weight: bold; cursor: pointer; border: none; font-size: 1.1rem; }
+    button.btn-pay:hover { background: #00c853; }
+    .log-box { background: #000; color: #00ff66; padding: 14px; border-radius: 4px; font-family: monospace; font-size: 0.85em; min-height: 140px; white-space: pre-wrap; margin-top: 15px; border: 1px solid #333; }
+
+    /* Ruleta de Gambling */
+    .roulette-container { text-align: center; background: #2a085c; padding: 15px; border-radius: 8px; border: 2px solid #9c27b0; margin-bottom: 20px; }
+    canvas { background: transparent; margin: 10px 0; }
+    .btn-spin { background: #ff9800; color: black; font-weight: bold; border: none; cursor: pointer; font-size: 1rem; }
+    
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Simulador de Pagos (Pattern Adapter)</h2>
-  <label>Monto a Pagar:</label>
-  <input type="number" id="monto" value="250.00">
-  
-  <label>Selecciona Método de Pago / Proveedor:</label>
-  <select id="proveedor">
-    <option value="stripe">Stripe (USD - Convierte a centavos enteros)</option>
-    <option value="paypal">PayPal (USD - Crea un objeto JSON)</option>
-    <option value="mercadopago">Mercado Pago (MXN - Objeto Preference)</option>
-    <option value="oxxo">Depósito en Oxxo (MXN - Genera Ficha/Voucher de pago)</option>
-  </select>
+<div class="top-banner">🔥 ¡FELICIDADES! ERES EL VISITANTE 1,000,000 — DA CLIC AQUÍ PARA RECLAMAR UN IPHONE 🔥</div>
 
-  <button onclick="ejecutarPago()">Procesar Pago</button>
+<div class="layout">
+  <!-- Anuncios Izquierda -->
+  <div class="ad-sidebar">
+    <div class="ad-box">
+      <h4>⚡ Cursos Senior</h4>
+      <p>Aprende React, Java y Rust en 3 minutos. 100% garantizado.</p>
+      <button style="background:#ffcc00; color:#000;">VER MÁS</button>
+    </div>
+    <div class="ad-box" style="border-color:#00e676; color:#00e676;">
+      <h4>💰 CriptoGana</h4>
+      <p>Invierte $1 USD y retírate a los 20 años.</p>
+    </div>
+  </div>
 
-  <h3>Consola Visual del Adaptador:</h3>
-  <div id="log" class="log-box">// Selecciona un método y presiona "Procesar Pago"...</div>
+  <!-- Contenido Principal -->
+  <div class="main-content">
+    <h2>Pasarela con Patrón Adaptador</h2>
+    
+    <!-- Ruleta para Dopamina -->
+    <div class="roulette-container">
+      <h3>🎰 Ruleta de Descuento (Gambling)</h3>
+      <canvas id="wheel" width="200" height="200"></canvas><br>
+      <button class="btn-spin" onclick="spinWheel()">¡GIRAR RULETA!</button>
+      <p id="roulette-result" style="font-weight: bold; color: #ffeb3b;"></p>
+    </div>
+
+    <!-- Formulario de Pago -->
+    <label>Monto Base ($ USD/MXN):</label>
+    <input type="number" id="monto" value="100.00">
+    
+    <label>Selecciona Proveedor de Pago:</label>
+    <select id="proveedor">
+      <option value="stripe">Stripe (USD - Centavos)</option>
+      <option value="paypal">PayPal (USD - JSON Payload)</option>
+      <option value="mercadopago">Mercado Pago (MXN - Preference)</option>
+      <option value="oxxo">Depósito Oxxo (MXN - Voucher)</option>
+    </select>
+
+    <button class="btn-pay" onclick="ejecutarPago()">Procesar Pago con Adaptador</button>
+
+    <h3>Consola del Adaptador:</h3>
+    <div id="log" class="log-box">// Estado listo. Esperando transacción...</div>
+  </div>
+
+  <!-- Anuncios Derecha -->
+  <div class="ad-sidebar">
+    <div class="ad-box" style="border-color:#ff0055; color:#ff0055;">
+      <h4>💊 Adiós Burnout</h4>
+      <p>Bebida energética para programadores. 0% agua, 100% cafeína.</p>
+    </div>
+  </div>
 </div>
 
 <script>
   // =========================================================
-  // 1. SDKs de Terceros (Totalmente incompatibles entre sí)
+  // LÓGICA DE LA RULETA (GAMBLING)
   // =========================================================
-  class StripeSDK {
-    cargarCentavos(cents) {
-      return { status: 200, stripe_id: "ch_" + Math.random().toString(36).substr(2, 6), charged: cents };
-    }
-  }
+  const options = [
+    { label: "0%", mult: 1.0 },
+    { label: "10% OFF", mult: 0.9 },
+    { label: "50% OFF", mult: 0.5 },
+    { label: "2X PRECIO", mult: 2.0 },
+    { label: "100% OFF", mult: 0.0 }
+  ];
+  let currentMultiplier = 1.0;
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
 
-  class PayPalSDK {
-    sendPayload(data) {
-      return { ack: "SUCCESS", transaction_amount: data.intent.amount + " " + data.intent.currency };
-    }
+  function drawWheel() {
+    const sliceAngle = (2 * Math.PI) / options.length;
+    const colors = ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#009688"];
+    
+    options.forEach((opt, i) => {
+      ctx.beginPath();
+      ctx.fillStyle = colors[i];
+      ctx.moveTo(100, 100);
+      ctx.arc(100, 100, 90, i * sliceAngle, (i + 1) * sliceAngle);
+      ctx.fill();
+      
+      ctx.save();
+      ctx.fillStyle = "white";
+      ctx.font = "bold 11px sans-serif";
+      ctx.translate(100, 100);
+      ctx.rotate(i * sliceAngle + sliceAngle / 2);
+      ctx.fillText(opt.label, 40, 4);
+      ctx.restore();
+    });
   }
+  drawWheel();
 
-  class MercadoPagoSDK {
-    createPaymentPreference(params) {
-      return { id: "MP-PREF-" + Math.floor(Math.random() * 899999 + 100000), status: "approved", amount: params.transaction_amount };
-    }
-  }
+  function spinWheel() {
+    const resultDiv = document.getElementById("roulette-result");
+    resultDiv.textContent = "Girando...";
+    let totalRounds = 20 + Math.floor(Math.random() * 10);
+    let currentRound = 0;
 
-  class OxxoPaySDK {
-    generateReferenceNumber(amountMXN, daysValid) {
-      // Oxxo no realiza un cobro bancario directo, genera un código de barras
-      const barcode = Math.floor(10000000000000 + Math.random() * 90000000000000);
-      return { reference: barcode, expire_days: daysValid, total: amountMXN };
-    }
+    const interval = setInterval(() => {
+      const selectedIndex = currentRound % options.length;
+      canvas.style.transform = `rotate(${currentRound * 72}deg)`;
+      currentRound++;
+
+      if (currentRound >= totalRounds) {
+        clearInterval(interval);
+        const win = options[selectedIndex];
+        currentMultiplier = win.mult;
+        resultDiv.textContent = `¡Salió ${win.label}! Multiplicador aplicado.`;
+      }
+    }, 80);
   }
 
   // =========================================================
-  // 2. Adaptadores (Estandarizan la llamada a .pagar(monto))
+  // PATRÓN ADAPTADOR (SDKs & ADAPTERS)
   // =========================================================
+  class StripeSDK { cargarCentavos(c) { return { status: 200, stripe_id: "ch_" + Math.random().toString(36).substr(2, 5) }; } }
+  class PayPalSDK { sendPayload(d) { return { ack: "SUCCESS" }; } }
+  class MercadoPagoSDK { createPaymentPreference(p) { return { id: "MP-PREF-" + Math.floor(Math.random()*90000) }; } }
+  class OxxoPaySDK { generateReferenceNumber(a) { return { reference: Math.floor(10000000000000 + Math.random()*90000000000000) }; } }
+
   class StripeAdapter {
-    constructor() { this.stripe = new StripeSDK(); }
-    pagar(monto) {
-      const centavos = Math.round(monto * 100);
-      const res = this.stripe.cargarCentavos(centavos);
-      return `[StripeAdapter]:\n - Conversión: $${monto} USD -> ${centavos} centavos.\n - Respuesta SDK: ID ${res.stripe_id} procesado con éxito.`;
+    constructor() { this.sdk = new StripeSDK(); }
+    pagar(m) {
+      const centavos = Math.round(m * 100);
+      const res = this.sdk.cargarCentavos(centavos);
+      return `[StripeAdapter]: $${m.toFixed(2)} USD -> ${centavos} centavos.\nSDK Status: OK (ID: ${res.stripe_id})`;
     }
   }
 
   class PayPalAdapter {
-    constructor() { this.paypal = new PayPalSDK(); }
-    pagar(monto) {
-      const payload = { intent: { amount: monto.toFixed(2), currency: "USD" } };
-      const res = this.paypal.sendPayload(payload);
-      return `[PayPalAdapter]:\n - Conversión: $${monto} USD -> JSON Payload ${JSON.stringify(payload)}\n - Respuesta SDK: Estado ${res.ack}.`;
+    constructor() { this.sdk = new PayPalSDK(); }
+    pagar(m) {
+      const payload = { intent: { amount: m.toFixed(2), currency: "USD" } };
+      const res = this.sdk.sendPayload(payload);
+      return `[PayPalAdapter]: $${m.toFixed(2)} USD -> Payload: ${JSON.stringify(payload)}\nSDK Status: ${res.ack}`;
     }
   }
 
   class MercadoPagoAdapter {
-    constructor() { this.mp = new MercadoPagoSDK(); }
-    pagar(monto) {
-      const params = { transaction_amount: monto, currency_id: "MXN", description: "Compra en tienda" };
-      const res = this.mp.createPaymentPreference(params);
-      return `[MercadoPagoAdapter]:\n - Conversión: $${monto} MXN -> Objeto Preference\n - Respuesta SDK: ID Orden ${res.id} (Estado: ${res.status}).`;
+    constructor() { this.sdk = new MercadoPagoSDK(); }
+    pagar(m) {
+      const params = { transaction_amount: m, currency_id: "MXN" };
+      const res = this.sdk.createPaymentPreference(params);
+      return `[MercadoPagoAdapter]: $${m.toFixed(2)} MXN -> Objeto Preference\nSDK Status: Generado ID ${res.id}`;
     }
   }
 
   class OxxoAdapter {
-    constructor() { this.oxxo = new OxxoPaySDK(); }
-    pagar(monto) {
-      // Oxxo requiere definir vigencia en días
-      const res = this.oxxo.generateReferenceNumber(monto, 3);
-      return `[OxxoAdapter]:\n - Conversión: $${monto} MXN -> Generación de Voucher (Vigencia 3 días).\n - Respuesta SDK: Ficha creada.\n - Código de Referencia: ${res.reference}`;
+    constructor() { this.sdk = new OxxoPaySDK(); }
+    pagar(m) {
+      const res = this.sdk.generateReferenceNumber(m);
+      return `[OxxoAdapter]: $${m.toFixed(2)} MXN -> Voucher generado.\nReferencia Oxxo: ${res.reference}`;
     }
   }
 
   // =========================================================
-  // 3. Cliente / Lógica de la Aplicación
+  // CLIENTE
   // =========================================================
   function ejecutarPago() {
-    const monto = parseFloat(document.getElementById('monto').value);
+    const montoBase = parseFloat(document.getElementById('monto').value);
     const proveedor = document.getElementById('proveedor').value;
     const logDiv = document.getElementById('log');
 
-    if (!monto || monto <= 0) return alert("Ingresa un monto válido");
+    if (!montoBase || montoBase <= 0) return alert("Ingresa un monto válido");
+
+    const montoFinal = montoBase * currentMultiplier;
 
     let adaptador;
     switch (proveedor) {
-      case 'stripe':
-        adaptador = new StripeAdapter();
-        break;
-      case 'paypal':
-        adaptador = new PayPalAdapter();
-        break;
-      case 'mercadopago':
-        adaptador = new MercadoPagoAdapter();
-        break;
-      case 'oxxo':
-        adaptador = new OxxoAdapter();
-        break;
+      case 'stripe': adaptador = new StripeAdapter(); break;
+      case 'paypal': adaptador = new PayPalAdapter(); break;
+      case 'mercadopago': adaptador = new MercadoPagoAdapter(); break;
+      case 'oxxo': adaptador = new OxxoAdapter(); break;
     }
 
-    // La aplicación SIEMPRE ejecuta exactamente el mismo método: .pagar(monto)
-    logDiv.textContent = `[Sistema App]: Ejecutando cliente.pagar(${monto})...\n\n` + adaptador.pagar(monto);
+    logDiv.textContent = `[Sistema App]: Monto base $${montoBase} x Multiplicador (${currentMultiplier}) = $${montoFinal.toFixed(2)}\n` +
+                         `[Sistema App]: Invocando adaptador.pagar(${montoFinal.toFixed(2)})...\n\n` + 
+                         adaptador.pagar(montoFinal);
   }
 </script>
 
